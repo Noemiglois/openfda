@@ -6,7 +6,7 @@ import web
 #WEB SERVER
 ##
 
-PORT=7023#A partir de 1024
+PORT=8000#A partir de 1024
 
 #Handler=http.server.SimpleHTTPRequestHandler
 Handler=web.testHTTPRequestHandler
