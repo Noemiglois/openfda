@@ -135,11 +135,11 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
         is_search2= False
         if self.path=='/':
             main_page= True
-        elif self.path== '/listDrugs?':
+        elif self.path== '/listDrugs':
             is_event= True
         elif 'searchDrug' in self.path:
             is_search1= True
-        elif self.path=='/listCompanies?':
+        elif self.path=='/listCompanies':
             is_company= True
         elif 'searchCompanies' in self.path:
             is_search2= True
