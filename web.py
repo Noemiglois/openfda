@@ -1,4 +1,6 @@
 #BIBLIOTECA
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #https://github.com/acs/python-red/blob/master/webserver/server.py
 import http.client
 import http.server
@@ -18,9 +20,19 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
         return events
 
     def get_events_search(self):
-        print('get_events_search')
         conn= http.client.HTTPSConnection(self.OPENFDA_API_URL)  #conexion
-        conn.request("GET", self.OPENFDA_API_EVENT+ "?limit=10&search=patient.drug.medicinalproduct:LYRICA") #GET hace un peticion y la respuesta se almacena en la biblioteca
+        busqueda=self.path.split('=')[1]
+        conn.request("GET", self.OPENFDA_API_EVENT+ "?limit=10&search=patient.drug.medicinalproduct:" + busqueda) #GET hace un peticion y la respuesta se almacena en la biblioteca
+        r1= conn.getresponse()  #recupera la respuesta y la almacena en una variable
+        data1=r1.read()
+        data1=data1.decode('utf8') #me lo decodificas a un string con formato utf8 (c es el 99, a es el 45...y se transforman en 0s y 1s)
+        events=json.loads(data1) #de string a diccionario
+        return events
+
+    def get_events_search_companies(self):
+        conn= http.client.HTTPSConnection(self.OPENFDA_API_URL)  #conexion
+        busqueda=self.path.split('=')[1]
+        conn.request("GET", self.OPENFDA_API_EVENT+ "?limit=10&search=companynumb:" + busqueda) #GET hace un peticion y la respuesta se almacena en la biblioteca
         r1= conn.getresponse()  #recupera la respuesta y la almacena en una variable
         data1=r1.read()
         data1=data1.decode('utf8') #me lo decodificas a un string con formato utf8 (c es el 99, a es el 45...y se transforman en 0s y 1s)
@@ -35,12 +47,28 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
             </head>
             <body>
                 <h1>OpenFDA Client</h1>
-                <form method="get" action="receive">
-                    <input type="submit" value="Enviar a OpenFDA">
+
+                <form method="get" action="listDrugs">
+                    <input type="submit" value="Lista medicamentos">
                     </input>
                 </form>
-                <form method= 'get' action='search'>
-                    <input type='submit' value='Buscar'>
+
+                <form method="get" action="listCompanies">
+                    <input type="submit" value="Lista de companias">
+                    </input>
+                </form>
+
+                <form method= "get" action="searchDrug">
+                    <input type="text" name="drug">
+                    </input>
+                    <input type="submit" value="Buscar medicamentos">
+                    </input>
+                </form>
+
+                <form method= 'get' action='searchCompanies'>
+                    <input type='text' name='company'>
+                    </input>
+                    <input type='submit' value='Buscar companias'>
                     </input>
                 </form>
             </body>
@@ -55,7 +83,7 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
             drugs+=[drug]
         return drugs
 
-    def get_drugs(self, drugs):
+    def get_drugs(self, drugs): #LISTA DE MEDICAMENTOS
         html2='''
         <html>
             <head>
@@ -74,7 +102,7 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
         '''
         return html2
 
-    def get_companies_name(self, companies):
+    def get_companies_name(self, companies):    #LISTA DE COMPAÑIAS
         html3='''
         <html>
             <head>
@@ -93,7 +121,6 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
         '''
         return html3
 
-
     def get_companies_from_events(self, events):
         companies=[]
         for event in events:
@@ -103,14 +130,20 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         main_page=False
         is_event=False
-        is_search=False
+        is_search1=False
+        is_company=False
+        is_search2= False
         if self.path=='/':
             main_page= True
-        elif self.path== '/receive?':
+        elif self.path== '/listDrugs?':
             is_event= True
-        elif self.path=='/search?':
-            print ('is_search=True')
-            is_search= True
+        elif 'searchDrug' in self.path:
+            is_search1= True
+        elif self.path=='/listCompanies?':
+            is_company= True
+        elif 'searchCompanies' in self.path:
+            is_search2= True
+
         self.send_response(200) #send response status code
         self.send_header('Content-type', 'text/html') #oye cliente, lo que te voy a enviar esta en formato html
         self.end_headers()
@@ -124,10 +157,22 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
             drugs=self.get_drugs_from_events(events)
             html=self.get_drugs(drugs)
             self.wfile.write(bytes(html,'utf8')) #ESTE ES EL COMANDO DE ENVIO
-        elif is_search:
+        elif is_search1:
             events=self.get_events_search()
             events=events['results']
             companies=self.get_companies_from_events(events)
             html=self.get_companies_name(companies)
+            self.wfile.write(bytes(html,'utf8')) #ESTE ES EL COMANDO DE ENVIO
+        elif is_company:
+            events=self.get_events()
+            events=events['results']
+            companies= self.get_companies_from_events(events)
+            html=self.get_companies_name(companies)
+            self.wfile.write(bytes(html,'utf8')) #ESTE ES EL COMANDO DE ENVIO
+        elif is_search2:
+            events=self.get_events_search_companies()
+            events=events['results']
+            drugs=self.get_drugs_from_events(events)
+            html=self.get_drugs(drugs)
             self.wfile.write(bytes(html,'utf8')) #ESTE ES EL COMANDO DE ENVIO
         return
