@@ -66,7 +66,11 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                 </form>
 
                 <form method= 'get' action='searchCompanies'>
+<<<<<<< HEAD
                     <input type='text' name='company'>
+=======
+                    <input type='text' name='Buscar'>
+>>>>>>> bda961d7a81d96249b71c58a4789a7997143ef01
                     </input>
                     <input type='submit' value='Buscar companias'>
                     </input>
