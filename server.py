@@ -1,19 +1,11 @@
-#PROGRAMA PRINCIPAL
 import socketserver
 import web
 
-##
-#WEB SERVER
-##
-
 PORT=8000
 
-#Handler=http.server.SimpleHTTPRequestHandler
 Handler=web.testHTTPRequestHandler
-
+socketserver.TCPServer.allow_reuse_address=True
 httpd=socketserver.TCPServer(('',PORT), Handler)
+
 print("serving at port", PORT)
 httpd.serve_forever()
-
-#Handler es la clase a traves de la cual vamos a crear los objetos de las peticiones
-#cat fichero.py para verlo en python
